@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Скрипт автоматического размещения динамического Web-проекта в соответствующие части
+	каталога web-приложения.
+-->
+<project name="WebProject" default="deploy" basedir=".">
+	
+	<!-- Корневая папка web-проекта. -->
+	<property name="project.basedir" value="./WebContent" />
+	
+	<!-- Папка для итогового размещения готового к выполнению приложения. -->
+	<property name="webapp.basedir" value="/usr/local/etc/tomcat/sravni/ROOT" />
+	
+	<!-- Папка для размещения скомпилированных классов (*.class) web-приложения -->
+	<property name="classes" value="classes" />
+	
+	<!-- Корневая папка с исходным кодом классов (*.java) web-приложения. -->
+	<property name="src" value="src/java" />
+	
+	<!-- Папка с результатами работы.  -->
+	<property name="distrib" value="distrib" />
+	
+	<!-- Папка для промежуточного размещения собранного приложения. -->
+	<property name="webapp.ready" value="${distrib}/webapp" />
+	
+	<!-- Имя web-архива приложения -->
+	<property name="warname" value="sravni.war" />
+	
+	<!-- Папка размещения сторонних библиотек, необходимых для работы приложения в процессе выполнения -->
+	<property name="lib" value="lib" />
+
+	<!-- Папка размещения сторонних библиотек, необходимых для разработки приложения -->
+	<property name="libext" value="libext" />
+
+	<!-- Папка с библиотеками контейнера сервлетов Tomcat  -->
+	<property name="tomcat.lib" value="/usr/local/etc/tomcat/lib" />
+
+	<tstamp>
+		<format property="compile.stamp" pattern="yyyyMMddhhmmss" />
+	</tstamp>
+	
+	<path id="classpath-main">
+		<fileset dir="${libext}" includes="*.jar *.zip" />
+		<fileset dir="${lib}" includes="**/*.jar *.zip" />
+		<fileset dir="${tomcat.lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<target name="init">
+		<echo>Creating project directories</echo>
+		<mkdir dir="${classes}" />
+		<mkdir dir="${webapp.ready}" />
+	</target>
+
+	<target name="clean">
+		<echo>Deleting project directories</echo>
+		<delete dir="${classes}" />
+		<delete dir="${webapp.ready}" />
+	</target>
+
+	<!-- Полная очистка проекта от промежуточных и релизных файлов -->
+	<target name="cleanProject" depends="clean">
+		<delete dir="${distrib}" includes="**/*" />
+	</target>
+	
+	<target name="deleteOld">
+		<echo>Deleting all files from destination directory</echo>
+		<delete dir="${webapp.basedir}" />
+	</target>
+
+	<!-- Промежуточная задача -->
+	<target name="distrib" depends="compile">
+		<echo>Making ready web application</echo>
+		<copy todir="${webapp.ready}" includeemptydirs="false">
+			<fileset dir="${project.basedir}" includes="**/*" />
+		</copy>
+		<copy todir="${webapp.ready}/WEB-INF/classes">
+			<fileset dir="${classes}" includes="**/*" />
+		</copy>
+		<copy todir="${webapp.ready}/WEB-INF/lib">
+			<fileset dir="${lib}" includes="*.jar *.zip" />
+		</copy>
+	</target>
+
+	<!-- Окончательная задача -->
+	<target name="deploy" depends="deleteOld, distrib" description="publishing project">
+		<echo>Publishing project with necessary libraries and classes</echo>
+		<copy todir="${webapp.basedir}" includeemptydirs="false">
+			<fileset dir="${webapp.ready}" includes="**/*" />
+		</copy>
+		<antcall target="clean" />
+	</target>
+
+	<!-- Промежуточная задача -->
+	<target name="compile" depends="init" description="compile the sources">
+		<echo>Compiling sources</echo>
+		<copy todir="${classes}" includeemptydirs="false" >
+			<fileset dir="${src}" excludes="**/*.java" />
+		</copy>
+		<javac destdir="${classes}" target="1.5" source="1.5" deprecation="true" debug="on" optimize="on" encoding="UTF-8">
+			<src path="${src}" />
+			<classpath refid="classpath-main" />
+		</javac>
+	</target>
+
+	<!-- Окончательная задача -->
+	<target name="war" depends="distrib" description="make war-file">
+		<war destfile="${distrib}/${warname}">
+			<fileset dir="${webapp.ready}" includes="**/*" />
+		</war>
+		<antcall target="clean" />
+	</target>
+	
+</project>

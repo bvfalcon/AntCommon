@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Obfuscate">
+	<!--
+		Подробное описание Ant-скриптов для ProGuard http://proguard.sourceforge.net/manual/ant.html
+	-->
+	<property name="injar" value="./input/jars" />
+	<property name="outjar" value="./output/jars" />
+	
+	<path id="main">
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- Задача обфускации jar-классов с помощью обфускатора ProGuard -->
+	<target name="obfuscate">
+		<taskdef name="proguard" classname="proguard.ant.ProGuardTask">
+			<classpath refid="main" />
+		</taskdef>
+		<proguard>
+			<libraryjar>
+				<pathelement location="${java.home}/lib/rt.jar" />
+			</libraryjar>
+			-dontskipnonpubliclibraryclasses
+			<injar>
+				<pathelement location="${injar}" />
+			</injar>
+			<outjar>
+				<pathelement location="${outjar}" />
+			</outjar>
+			<!-- Исключаем из обработки метод public static void main(java.lang.String[]) -->
+			<keepclasseswithmembers access="public" name="*">
+				<method access="public static" type="void" name="main" parameters="java.lang.String[]" />
+			</keepclasseswithmembers>
+			<!-- Исключаем из обработки вообще все публичные методы публичных классов. Может пригодится при создании библиотек. -->
+			<keepclasseswithmembers access="public">
+				<method access="public" />
+			</keepclasseswithmembers>
+		</proguard>
+	</target>
+</project>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JasperReports" basedir=".">
+
+	<property name="jasperreports.lib" value="/absolute/path/to/jasperreports/libraries" />
+	<property name="reports.dest" value="./relative/path/destination" />
+	<property name="reports.src" value="./relative/path/source" />
+
+	<path id="main">
+		<fileset dir="${jasperreports.lib}">
+			<include name="**/*.jar"/>
+		</fileset>    		
+	</path>
+
+	<!-- Задача компиляции отчетов JasperReports -->
+	<target name="compile-reports">
+
+		<taskdef name="jrc" classname="net.sf.jasperreports.ant.JRAntCompileTask">
+			<classpath refid="main"/>
+		</taskdef>
+
+		<jrc destdir="${reports.dest}">
+			<classpath refid="main"/>
+			<src>
+				<fileset dir="${reports.src}">
+					<include name="*.jrxml"/>
+				</fileset>
+			</src>
+		</jrc>
+    </target>
+
+</project>

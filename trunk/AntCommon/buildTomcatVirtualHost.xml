@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Проект для создания виртуального хоста в контейнере сервлетов Tomcat 6.0.
+	Для запуска необходимо иметь права на запись в файлы hosts (/etc/hosts) и $CATALINA_HOME/conf/server.xml
+-->
+<project name="TomcatVH" default="create" basedir=".">
+	
+	<!-- Папка с установленным сервером Tomcat. AKA $CATALINA_HOME. -->
+	<property name="tomcat.dir" value="/usr/local/etc/tomcat" />
+
+	<!-- Название проекта -->
+	<property name="project.name" value="sravni" />
+
+	<!-- Полный путь к папке, в котором будут размещаться файлы проекта. -->
+	<property name="project.dir" value="${tomcat.dir}/${project.name}" />
+
+	<!-- Путь к файлу hosts системы. -->
+	<property name="hosts.filepath" value="/etc/hosts" />
+	
+	<!-- URL, по которому сайт будет доступен локально. -->
+	<property name="url.main" value="sravni.ru" />
+
+	<!-- Alias URL, по которому сайт также будет доступен -->
+	<property name="url.alias.1" value="www.sravni.ru" />
+	<!--
+	<property name="url.alias.2" value="wap.sravni.ru" />
+	-->
+
+	<path id="classpath-TVH">
+		<fileset dir="${basedir}/libext/tomcatVH" includes="**/*.jar" />
+	</path>
+
+	<target name="create" description="Создание нового виртуального хостинга в Tomcat 6.0">
+		<antcall target="write.server.xml" />
+		<mkdir dir="${project.dir}" />
+		<antcall target="write.hosts" />
+	</target>
+	
+	<target name="write.server.xml" description="Создание хостинга в файле конфигурации Tomcat (server.xml)">
+		<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpathref="classpath-TVH" />
+		<xmltask source="${tomcat.dir}/conf/server.xml" dest="${tomcat.dir}/conf/server.xml">
+			<insert path="/Server/Service/Engine/Host[last()]" position="after">
+				<![CDATA[
+					<Host name="${url.main}" appBase="${project.dir}" />
+				]]>
+			</insert>
+			<insert path="/Server/Service/Engine/Host[last()]" if="url.alias.1">
+				<![CDATA[
+					<Alias>${url.alias.1}</Alias>
+				]]>
+			</insert>
+			<insert path="/Server/Service/Engine/Host[last()]" if="url.alias.2">
+				<![CDATA[
+					<Alias>${url.alias.2}</Alias>
+				]]>
+			</insert>
+		</xmltask>
+	</target>
+	
+	<target name="write.hosts" description="Запись URL, по которым доступен сайт, в файл hosts системы">
+		<echo file="${hosts.filepath}" append="true" message="${line.separator}" />
+		<echo file="${hosts.filepath}" append="true" message="127.0.0.1    ${url.main}${line.separator}" />
+		<antcall target="write.hosts.url.alias.1" />
+		<antcall target="write.hosts.url.alias.2" />
+	</target>
+
+	<target name="write.hosts.url.alias.1" if="url.alias.1">
+		<echo file="${hosts.filepath}" append="true" message="127.0.0.1    ${url.alias.1}${line.separator}" />
+	</target>
+
+	<target name="write.hosts.url.alias.2" if="url.alias.2">
+		<echo file="${hosts.filepath}" append="true" message="127.0.0.1    ${url.alias.2}${line.separator}" />
+	</target>
+</project>

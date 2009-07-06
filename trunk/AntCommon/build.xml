@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test" default="default">
+	<path id="main">
+		<fileset dir="libext" includes="**/*.jar" />
+	</path>
+
+	<property name="foo" value="sdcvd" />
+	
+	<target name="default">
+		<condition property="alias">
+			<isset property="foo" />
+		</condition>
+		<antcall target="do">
+			<param name="mess" value="dscvsdfv" />
+		</antcall>
+	</target>
+				
+	<target name="do" if="alias">
+		<echo message="${mess}" />
+	</target>
+</project>
