@@ -20,6 +20,7 @@
 		<proguard>
 			<libraryjar>
 				<pathelement location="${java.home}/lib/rt.jar" />
+				<path refid="main" />
 			</libraryjar>
 			-dontskipnonpubliclibraryclasses
 			<injar>
